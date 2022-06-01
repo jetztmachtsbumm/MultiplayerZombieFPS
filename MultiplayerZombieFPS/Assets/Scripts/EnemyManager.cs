@@ -6,7 +6,8 @@ using UnityEngine.AI;
 public class EnemyManager : MonoBehaviour
 {
 
-    [SerializeField] private float damage = 20f;
+    [SerializeField] private float damage = 20;
+    [SerializeField] private int health = 100;
 
     private GameObject player;
     private NavMeshAgent agent;
@@ -30,6 +31,16 @@ public class EnemyManager : MonoBehaviour
         if(collision.gameObject == player)
         {
             player.GetComponent<PlayerManager>().GetDamage(damage);
+        }
+    }
+
+    public void TakeDamage(int amount)
+    {
+        health -= amount;
+        if(health <= 0)
+        {
+            //Die
+            Destroy(gameObject);
         }
     }
 
