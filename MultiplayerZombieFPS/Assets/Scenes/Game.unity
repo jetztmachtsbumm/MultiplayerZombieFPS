@@ -14,19 +14,19 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.7372549, g: 0.6666667, b: 0.56078434, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.005
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0.5
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: e391f00234292cc4f935308c11cf0e54, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -37,8 +37,8 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_Sun: {fileID: 1389781835}
+  m_IndirectSpecularColor: {r: 0.13040014, g: 0.096015215, b: 0.06181486, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1190,6 +1190,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3515506726782851334, guid: d6834fe065295814d8d657cc943fffec,
+        type: 3}
+      propertyPath: anim
+      value: 
+      objectReference: {fileID: 824477842}
+    - target: {fileID: 4924542356035537769, guid: d6834fe065295814d8d657cc943fffec,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: defcdf1652cf89e4093a32fa03d28c46, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6834fe065295814d8d657cc943fffec, type: 3}
 --- !u!1001 &206083021
@@ -1534,20 +1544,9 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2924185748561415400, guid: e75ad5b2b3cd9f74a8288335fb2224f7,
-        type: 3}
+    - target: {fileID: 625791064, guid: e75ad5b2b3cd9f74a8288335fb2224f7, type: 3}
       propertyPath: m_Height
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2924185748561415400, guid: e75ad5b2b3cd9f74a8288335fb2224f7,
-        type: 3}
-      propertyPath: m_Radius
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 2924185748561415400, guid: e75ad5b2b3cd9f74a8288335fb2224f7,
-        type: 3}
-      propertyPath: m_Center.y
-      value: 3.3
+      value: 3.8
       objectReference: {fileID: 0}
     - target: {fileID: 7237887403474013486, guid: e75ad5b2b3cd9f74a8288335fb2224f7,
         type: 3}
@@ -4671,6 +4670,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8814349777506774041, guid: 012695f75ae36024c8f1503e6926a49c,
     type: 3}
   m_PrefabInstance: {fileID: 803341266}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &824477842 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 4924542356035537769, guid: d6834fe065295814d8d657cc943fffec,
+    type: 3}
+  m_PrefabInstance: {fileID: 170685581}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &833727623
 PrefabInstance:
