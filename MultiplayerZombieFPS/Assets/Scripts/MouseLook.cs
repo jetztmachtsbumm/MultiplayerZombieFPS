@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class MouseLook : MonoBehaviour
 {
@@ -10,6 +11,9 @@ public class MouseLook : MonoBehaviour
     public Transform playerBody;
     //Float for x axis rotation
     float xRotation = 0f;
+
+    public PhotonView photonView;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +25,11 @@ public class MouseLook : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(PhotonNetwork.InRoom && !photonView.IsMine)
+        {
+            return;
+        }
+
         //Get X axis Mouse input multiplying by sensitivity and Time to make it not framerate dependant
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         //Get Y axis Mouse Input multiplying by sensitivity and Time to make it not framerate dependant

@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class PlayerManager : MonoBehaviour
+using Hashtable = ExitGames.Client.Photon.Hashtable;
+
+public class PlayerManager : MonoBehaviourPunCallbacks
 {
     public float health = 100;
     public Text healthNumber;
@@ -27,6 +31,7 @@ public class PlayerManager : MonoBehaviour
     public Text pointsNumber;
     public float healthCap;
 
+    public PhotonView photonView;
 
     // Start is called before the first frame update
     void Start()
@@ -41,6 +46,12 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
+        if(PhotonNetwork.InRoom && !photonView.IsMine)
+        {
+            playerCamera.SetActive(false);
+            return;
+        }
+
         if (hurtPanel.alpha > 0)
         {
             hurtPanel.alpha -= Time.deltaTime;
@@ -65,18 +76,33 @@ public class PlayerManager : MonoBehaviour
 
     public void Hit(float damage)
     {
-        health -= damage;
-        healthNumber.text = health.ToString();
-
-        if (health <= 0)
+        if (PhotonNetwork.InRoom)
         {
-            gameManager.EndGame();
+            photonView.RPC("PlayerTakeDamage", RpcTarget.All, damage, photonView.ViewID);
         }
         else
         {
-            shakeTime = 0;
-            shakeDuration = 0.2f;
-            hurtPanel.alpha = 1;
+            PlayerTakeDamage(damage, photonView.ViewID);
+        }
+    }
+
+    [PunRPC]
+    public void PlayerTakeDamage(float damage, int viewID)
+    {
+        if (photonView.ViewID == viewID) { 
+            health -= damage;
+            healthNumber.text = health.ToString();
+
+            if (health <= 0)
+            {
+                gameManager.EndGame();
+            }
+            else
+            {
+                shakeTime = 0;
+                shakeDuration = 0.2f;
+                hurtPanel.alpha = 1;
+            }
         }
     }
 
@@ -108,6 +134,27 @@ public class PlayerManager : MonoBehaviour
             index++;
         }
         activeWeaponIndex = weaponIndex;
+
+        if (photonView.IsMine)
+        {
+            Hashtable hash = new Hashtable();
+            hash.Add("weaponIndex", weaponIndex);
+            PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+        }
+    }
+
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+    {
+        if(!photonView.IsMine && targetPlayer == photonView.Owner && changedProps["weaponIndex"] != null)
+        {
+            weaponSwitch((int)changedProps["weaponIndex"]);
+        }
+    }
+
+    [PunRPC]
+    public void WeaponShootVFX(int viewID)
+    {
+        activeWeapon.GetComponent<WeaponManager>().ShootVFX(viewID);
     }
 
 }

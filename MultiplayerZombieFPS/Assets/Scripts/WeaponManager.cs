@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
     public class WeaponManager : MonoBehaviour
     {
@@ -30,7 +31,7 @@ using UnityEngine.UI;
         public string weaponType;
         public PlayerManager playerManager;
         public float ammoCap;
-
+        public PhotonView photonView;
 
 
 
@@ -63,6 +64,11 @@ using UnityEngine.UI;
     // Update is called once per frame
     void Update()
     {
+        if(PhotonNetwork.InRoom && !photonView.IsMine)
+        {
+            return;
+        }
+
         if (playerAnimator.GetBool("isShooting"))
         {
             playerAnimator.SetBool("isShooting", false);
@@ -132,8 +138,16 @@ using UnityEngine.UI;
     {
         currentAmmo--;
         currentAmmoText.text = currentAmmo.ToString();
-        muzzleFlash.Play();
-        audioSource.PlayOneShot(gunshot, 1f);
+
+        if (PhotonNetwork.InRoom)
+        {
+            photonView.RPC("WeaponShootVFX", RpcTarget.All, photonView.ViewID);
+        }
+        else
+        {
+            ShootVFX(photonView.ViewID);
+        }
+
         playerAnimator.SetBool("isShooting", true);
         RaycastHit hit;
         if(Physics.Raycast(playerCam.transform.position, playerCam.transform.forward, out hit, range))
@@ -156,6 +170,15 @@ using UnityEngine.UI;
                 GameObject InstParticles = Instantiate(nonTargetHitParticles, hit.point, Quaternion.LookRotation(hit.normal));
                 Destroy(InstParticles, 20f);
             }
+        }
+    }
+
+    public void ShootVFX(int viewID)
+    {
+        if(photonView.ViewID == viewID)
+        {
+            muzzleFlash.Play();
+            audioSource.PlayOneShot(gunshot, 1f);
         }
     }
 

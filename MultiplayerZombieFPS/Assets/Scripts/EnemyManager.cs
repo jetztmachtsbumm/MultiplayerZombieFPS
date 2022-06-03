@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class EnemyManager : MonoBehaviour
 {
@@ -19,13 +20,16 @@ public class EnemyManager : MonoBehaviour
     public AudioClip[] zombieSounds;
     public AudioSource audioSource;
     public int points = 20;
+    public PhotonView photonView;
+
+    GameObject[] playersInScene;
 
 
     // Start is called before the first frame update
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        player = GameObject.FindGameObjectWithTag("Player");
+        playersInScene = GameObject.FindGameObjectsWithTag("Player");
 
         slider.maxValue = health;
         slider.value = health;
@@ -41,9 +45,19 @@ public class EnemyManager : MonoBehaviour
             audioSource.Play();
         }
 
-        slider.gameObject.transform.LookAt(player.transform.position);
-        
-        GetComponent<NavMeshAgent>().destination = player.transform.position;
+        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
+        GetClosestPlayer();
+
+        if (player != null)
+        {
+            slider.gameObject.transform.LookAt(player.transform.position);
+
+            GetComponent<NavMeshAgent>().destination = player.transform.position;
+        }
 
         if (GetComponent<NavMeshAgent>().velocity.magnitude > 1)
         {
@@ -52,6 +66,25 @@ public class EnemyManager : MonoBehaviour
         else
         {
             enemyAnimator.SetBool("isRunning", false);
+        }
+    }
+
+    private void GetClosestPlayer()
+    {
+        float minDistance = Mathf.Infinity;
+        Vector3 currPosition = transform.position;
+
+        foreach(GameObject player in playersInScene)
+        {
+            if(player != null)
+            {
+                float distance = Vector3.Distance(player.transform.position, currPosition);
+                if(distance < minDistance)
+                {
+                    this.player = player;
+                    minDistance = distance;
+                }
+            }
         }
     }
 
@@ -91,20 +124,32 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
-
-
     public void Hit(float damage)
     {
-        health -= damage;
-        slider.value = health;
-        if (health <= 0)
+        photonView.RPC("TakeDamage", RpcTarget.All, damage, photonView.ViewID);
+    }
+
+    [PunRPC]
+    public void TakeDamage(float damage, int viewID)
+    {
+        if (photonView.ViewID == viewID)
         {
-            enemyAnimator.SetTrigger("isDead");            
-            Destroy(gameObject, 10f);        
-            gameManager.enemiesAlive--;
-            Destroy(GetComponent<NavMeshAgent>());
-            Destroy(GetComponent<EnemyManager>());
-            Destroy(GetComponent<CapsuleCollider>());
+            health -= damage;
+            slider.value = health;
+            if (health <= 0)
+            {
+                enemyAnimator.SetTrigger("isDead");
+                Destroy(gameObject, 10f);
+
+                if (!PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient && photonView.IsMine)
+                {
+                    gameManager.enemiesAlive--;
+                }
+
+                Destroy(GetComponent<NavMeshAgent>());
+                Destroy(GetComponent<EnemyManager>());
+                Destroy(GetComponent<CapsuleCollider>());
+            }
         }
     }
 

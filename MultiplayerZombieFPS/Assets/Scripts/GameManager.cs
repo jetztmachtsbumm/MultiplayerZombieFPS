@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
+using Photon.Realtime;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     public int enemiesAlive = 0;
     public int round = 0;
     public GameObject[] spawnPoints;
-    public GameObject enemyPrefab;
     public Text roundNumber;
     public GameObject endScreen;
     public Text roundsSurvived;
     public GameObject pauseMenu;
     public Animator blackScreenAnimator;
+    public PhotonView photonView;
 
     /*    public GameObject enemyPrefab;
         public Text roundNumber;
@@ -25,16 +28,28 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        spawnPoints = GameObject.FindGameObjectsWithTag("Spawner");
     }
 
     void Update()
     {
-        if (enemiesAlive == 0)
+        if (PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient && photonView.IsMine)
         {
-            round++;
-            NextWave(round);
-            roundNumber.text = round.ToString();
+            if (enemiesAlive == 0)
+            {
+                round++;
+                NextWave(round);
+                if (PhotonNetwork.InRoom)
+                {
+                    Hashtable hash = new Hashtable();
+                    hash.Add("currentRound", round);
+                    PhotonNetwork.LocalPlayer.SetCustomProperties(hash); 
+                }
+                else
+                {
+                    DisplayNextRound(round);
+                }
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -50,12 +65,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void DisplayNextRound(int round)
+    {
+        roundNumber.text = round.ToString();
+    }
+
     public void NextWave(int round)
     {
         for (var x = 0; x < round; x++)
         {
             GameObject spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            GameObject enemySpawned = Instantiate(enemyPrefab, spawnPoint.transform.position, Quaternion.identity);
+            GameObject enemySpawned;
+
+            if (PhotonNetwork.InRoom)
+            {
+                enemySpawned = PhotonNetwork.Instantiate("Zombie", spawnPoint.transform.position, Quaternion.identity);
+            }
+            else
+            {
+                enemySpawned = Instantiate(Resources.Load("Zombie"), spawnPoint.transform.position, Quaternion.identity) as GameObject;
+            }
             enemySpawned.GetComponent<EnemyManager>().gameManager = GetComponent<GameManager>();
             enemiesAlive++;
         }
@@ -63,7 +92,10 @@ public class GameManager : MonoBehaviour
 
     public void EndGame()
     {
-        Time.timeScale = 0;
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0;
+        }
         Cursor.lockState = CursorLockMode.None;
         endScreen.SetActive(true);
         roundsSurvived.text = round.ToString();
@@ -71,7 +103,10 @@ public class GameManager : MonoBehaviour
 
     public void Restart()
     {
-        Time.timeScale = 1;
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 1;
+        }
         SceneManager.LoadScene(1);
     }
 
@@ -79,7 +114,10 @@ public class GameManager : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.None;
         AudioListener.volume = 0;
-        Time.timeScale = 0;
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0;
+        }
         pauseMenu.SetActive(true);
     }
 
@@ -87,13 +125,19 @@ public class GameManager : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         AudioListener.volume = 1;
-        Time.timeScale = 1;
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0;
+        }
         pauseMenu.SetActive(false);
     }
 
     public void BackToMainMenu()
     {
-        Time.timeScale = 1;
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0;
+        }
         blackScreenAnimator.SetTrigger("FadeIn");
         Invoke("LoadMainMenuScene", 0.4f);
     }
@@ -103,4 +147,16 @@ public class GameManager : MonoBehaviour
         AudioListener.volume = 1;
         SceneManager.LoadScene(0);
     }
+
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+    {
+        if (photonView.IsMine)
+        {
+            if(changedProps["currentRound"] != null)
+            {
+                DisplayNextRound((int)changedProps["currentRound"]);
+            }
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -9,13 +10,15 @@ public class PlayerMovement : MonoBehaviour
     float speed = 12f;
     public float walkSpeed = 5f;
     public float sprintSpeed = 10f;
-    Vector3 velocity;
     public float gravity = -9.81f;
     public bool isGrounded;
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
     public float jumpHeight = 2f;
+    public PhotonView photonView;
+
+    Vector3 velocity;
 
     void Start()
     {
@@ -24,6 +27,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if(PhotonNetwork.InRoom && !photonView.IsMine)
+        {
+            return;
+        }
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
         if (isGrounded && velocity.y < 0)
